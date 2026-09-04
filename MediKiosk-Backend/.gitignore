@@ -1,41 +1,183 @@
-# Secrets and local env (never commit real keys — DPDP)
+# MediKiosk-Backend .gitignore
+# Comprehensive production-ready gitignore for Python, Docker, and healthcare data
+
+# =============================================================================
+# ENVIRONMENT & SECRETS (NEVER COMMIT)
+# =============================================================================
 .env
 .env.local
-*.pem
-*.key
+.env.*.local
+.env.production
+.env.staging
+.env.development
 
-# Python
+# Secrets and sensitive data
+*.key
+*.pem
+*.crt
+*.cer
+secrets/
+credentials/
+nginx/ssl/*.pem
+nginx/ssl/*.key
+nginx/ssl/*.crt
+
+# =============================================================================
+# PYTHON
+# =============================================================================
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
 .Python
-.venv/
-venv/
-env/
-*.egg-info/
-.eggs/
-dist/
 build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
 
-# Alembic / tooling
-.mypy_cache/
+# Virtual environments
+venv/
+ENV/
+env/
+.venv/
+.ENV/
+env.bak/
+venv.bak/
+
+# PyCharm
+.idea/
+*.iml
+*.iws
+*.ipr
+.pydevproject
+.settings/
+
+# VSCode
+.vscode/
+*.code-workspace
+.history/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+*.ipynb
+
+# pytest
 .pytest_cache/
-.ruff_cache/
 .coverage
 htmlcov/
+*.cover
+.hypothesis/
 
-# Uploads: temp scans must never be committed; vault is opt-in ciphertext only
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# =============================================================================
+# DATABASE
+# =============================================================================
+*.db
+*.sqlite
+*.sqlite3
+*.sql.gz
+backup_*.sql
+database_dump_*.sql
+postgres_data/
+redis_data/
+
+# =============================================================================
+# UPLOADS & TEMPORARY FILES (PII - NEVER COMMIT)
+# =============================================================================
 uploads/temp_scans/*
 !uploads/temp_scans/.gitkeep
 uploads/encrypted_vault/*
 !uploads/encrypted_vault/.gitkeep
+temp/
+tmp/
+*.tmp
+*.temp
+*.bak
+*.swp
+*~
 
-# IDE / OS
-.idea/
-.vscode/
-.DS_Store
-
-# Logs
-*.log
+# =============================================================================
+# LOGS & AUDIT (COMPLIANCE - NEVER COMMIT)
+# =============================================================================
 logs/
+*.log
+audit.log
+app.log
+error.log
+access.log
+nginx/logs/
+/var/log/
+
+# =============================================================================
+# DOCKER
+# =============================================================================
+.dockerbuildinfo
+
+# =============================================================================
+# OPERATIONAL FILES
+# =============================================================================
+*.pid
+*.lock
+.DS_Store
+Thumbs.db
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# =============================================================================
+# TESTING & COVERAGE
+# =============================================================================
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+
+# =============================================================================
+# DOCUMENTATION (GENERATED)
+# =============================================================================
+docs/_build/
+docs/.doctrees/
+site/
+
+# =============================================================================
+# CI/CD
+# =============================================================================
+.github/workflows/*.log
+.gitlab-ci.yml.local
+
+# =============================================================================
+# MISC
+# =============================================================================
+.sass-cache/
+node_modules/
+bower_components/
+static/
+media/
+public/
+
+# =============================================================================
+# SCRIPTS (exclude logs and backups)
+# =============================================================================
+scripts/*.log
+scripts/*.backup

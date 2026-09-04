@@ -1,0 +1,3 @@
+# This directory is intentionally left empty for encrypted document storage
+# Files are stored only on explicit patient opt-in
+# NEVER commit actual encrypted files to version control (PII)
