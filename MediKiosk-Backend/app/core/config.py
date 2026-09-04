@@ -67,6 +67,12 @@ class Settings(BaseSettings):
     JWT_REFRESH_TTL_DAYS: int = 7
     JWT_ISSUER: str = "medikiosk"
 
+    OTP_TTL_SECONDS: int = 300
+    # SECRET: development-only mock OTP. MUST be unset in production.
+    DEV_ABHA_OTP: SecretStr | None = None
+    # Environment-specific DPDP notice copy id shown on the kiosk.
+    DPDP_NOTICE_VERSION: str = "dpdp-notice-2026-01"
+
     FIELD_ENCRYPTION_KEY: SecretStr
     PII_LOOKUP_HMAC_KEY: SecretStr
     FIELD_ENCRYPTION_KEY_ID: str = "v1"
@@ -98,6 +104,14 @@ class Settings(BaseSettings):
         env = info.data.get("APP_ENV")
         if env == "production" and value:
             raise ValueError("DEBUG must be false when APP_ENV=production")
+        return value
+
+    @field_validator("DEV_ABHA_OTP")
+    @classmethod
+    def no_dev_otp_in_production(cls, value: SecretStr | None, info: ValidationInfo):
+        env = info.data.get("APP_ENV")
+        if env == "production" and value and value.get_secret_value():
+            raise ValueError("DEV_ABHA_OTP must be empty when APP_ENV=production")
         return value
 
     @property

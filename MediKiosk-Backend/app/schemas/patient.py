@@ -11,7 +11,7 @@ from enum import Enum
 from typing import Annotated
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from app.models.consent import ConsentPurpose, ConsentStatus
 from app.models.user import AbhaLinkStatus
@@ -103,3 +103,65 @@ class ConsentOut(BaseModel):
     granted_at: datetime | None
     expires_at: datetime | None
     revoked_at: datetime | None
+
+
+class StaffLoginIn(BaseModel):
+    login_handle: str = Field(min_length=3, max_length=128)
+    password: str = Field(min_length=8, max_length=128)
+
+
+class AbhaOtpRequestIn(BaseModel):
+    clinic_id: UUID
+    # PII: ABHA number (preferred)
+    abha_number: PII | None = Field(default=None, description="PII:ABHA")
+    # PII: Aadhaar (fallback identifier for OTP)
+    aadhaar: PII | None = Field(default=None, description="PII:Aadhaar")
+
+    @field_validator("abha_number", "aadhaar")
+    @classmethod
+    def reject_blank_ids(cls, value: str | None) -> str | None:
+        if value is not None and not value.strip():
+            return None
+        return value
+
+    @model_validator(mode="after")
+    def require_one_identifier(self) -> AbhaOtpRequestIn:
+        if not self.abha_number and not self.aadhaar:
+            raise ValueError("abha_number or aadhaar is required")
+        return self
+
+
+class AbhaOtpRequestOut(BaseModel):
+    challenge_id: UUID
+    expires_in_seconds: int
+    delivery: str
+
+
+class AbhaOtpVerifyIn(BaseModel):
+    challenge_id: UUID
+    otp: str = Field(min_length=4, max_length=8, description="PII:OTP — never log")
+    clinic_id: UUID
+
+
+class TokenPair(BaseModel):
+    access_token: str
+    refresh_token: str
+    token_type: str = "bearer"
+    expires_in_seconds: int
+    patient_id: UUID | None = None
+    abha_linked: bool = False
+    treatment_consent: bool = False
+
+
+class RefreshIn(BaseModel):
+    refresh_token: str
+
+
+class SessionStatusOut(BaseModel):
+    user_id: UUID
+    role: str
+    clinic_id: UUID | None
+    patient_id: UUID | None
+    abha_linked: bool
+    treatment_consent: bool
+    ready_for_intake: bool

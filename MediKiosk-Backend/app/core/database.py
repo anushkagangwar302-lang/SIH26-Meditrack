@@ -163,7 +163,12 @@ async def get_db() -> AsyncIterator[AsyncSession]:
     if _session_factory is None:
         raise RuntimeError("Session factory not initialised")
     async with _session_factory() as session:
-        yield session
+        try:
+            yield session
+            await session.commit()
+        except Exception:
+            await session.rollback()
+            raise
 
 
 @asynccontextmanager
@@ -198,8 +203,24 @@ async def claim_idempotency_key(key: str, ttl_seconds: int | None = None) -> boo
     settings = get_settings()
     ttl = ttl_seconds or settings.IDEMPOTENCY_TTL_SECONDS
     redis_key = f"{settings.REDIS_PREFIX_IDEMPOTENCY}{key}"
-    created = await redis_ratelimit().set(redis_key, "1", nx=True, ex=ttl)
+    created = await redis_ratelimit().set(redis_key, "pending", nx=True, ex=ttl)
     return bool(created)
+
+
+async def idempotency_get(key: str) -> str | None:
+    settings = get_settings()
+    redis_key = f"{settings.REDIS_PREFIX_IDEMPOTENCY}{key}"
+    value = await redis_ratelimit().get(redis_key)
+    if value in (None, "pending"):
+        return None
+    return str(value)
+
+
+async def idempotency_store(key: str, payload: str, ttl_seconds: int | None = None) -> None:
+    settings = get_settings()
+    ttl = ttl_seconds or settings.IDEMPOTENCY_TTL_SECONDS
+    redis_key = f"{settings.REDIS_PREFIX_IDEMPOTENCY}{key}"
+    await redis_ratelimit().set(redis_key, payload, ex=ttl)
 
 
 async def hit_rate_limit(bucket: str, limit_per_minute: int) -> bool:
