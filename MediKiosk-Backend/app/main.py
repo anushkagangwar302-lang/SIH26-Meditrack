@@ -8,6 +8,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, ORJSONResponse
 
+from app.api.v1.auth_routes import router as auth_router
 from app.core.config import get_settings
 from app.core.database import (
     close_connections,
@@ -95,6 +96,7 @@ def create_app() -> FastAPI:
         await ping_redis()
         return {"status": "ready", "request_id": get_request_id()}
 
+    app.include_router(auth_router, prefix=settings.API_V1_PREFIX)
     return app
 
 

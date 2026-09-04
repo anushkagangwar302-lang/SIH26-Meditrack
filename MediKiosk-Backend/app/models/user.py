@@ -48,6 +48,7 @@ class Clinic(TimestampMixin, Base):
 
 class User(TimestampMixin, Base):
     __tablename__ = "users"
+    __table_args__ = (UniqueConstraint("login_handle", name="uq_users_login_handle"),)
 
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
@@ -61,6 +62,8 @@ class User(TimestampMixin, Base):
         nullable=True,
         index=True,
     )
+    # Staff/kiosk login identifier (not PII). Patients authenticate via ABHA — leave null.
+    login_handle: Mapped[str | None] = mapped_column(String(128), nullable=True)
     # Staff credentials only. Patients authenticate via ABHA OTP — password_hash stays null.
     password_hash: Mapped[str | None] = mapped_column(Text, nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("true"))

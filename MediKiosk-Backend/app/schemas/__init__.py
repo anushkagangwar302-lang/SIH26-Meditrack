@@ -11,15 +11,25 @@ from app.schemas.interview import (
     TriageOut,
 )
 from app.schemas.patient import (
+    AbhaOtpRequestIn,
+    AbhaOtpRequestOut,
+    AbhaOtpVerifyIn,
     ConsentCaptureIn,
     ConsentOut,
     PatientDemographicsOut,
     PatientEnrollIn,
     PatientOut,
+    RefreshIn,
+    SessionStatusOut,
+    StaffLoginIn,
+    TokenPair,
 )
 
 __all__ = [
     "AbdmWebhookAck",
+    "AbhaOtpRequestIn",
+    "AbhaOtpRequestOut",
+    "AbhaOtpVerifyIn",
     "AyushBranchIn",
     "ConsentCaptureIn",
     "ConsentOut",
@@ -35,6 +45,10 @@ __all__ = [
     "PatientDemographicsOut",
     "PatientEnrollIn",
     "PatientOut",
+    "RefreshIn",
+    "SessionStatusOut",
     "SocratesUpdateIn",
+    "StaffLoginIn",
+    "TokenPair",
     "TriageOut",
 ]
