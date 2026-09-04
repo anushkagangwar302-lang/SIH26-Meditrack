@@ -1,0 +1,3 @@
+# This directory is intentionally left empty for SSL certificates
+# DO NOT commit actual certificates to version control
+# Place cert.pem and key.pem here for production use
