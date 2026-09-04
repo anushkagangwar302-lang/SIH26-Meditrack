@@ -1,0 +1,281 @@
+# Production-optimized docker-compose.yml with secrets management and scaling
+# Usage: docker compose -f docker-compose.production.yml up -d
+# 
+# IMPORTANT: Configure .env file with production secrets before deploying
+# See .env.production for required environment variables
+
+name: medikiosk-prod
+
+services:
+  # PostgreSQL Database with persistent storage
+  postgres:
+    image: postgres:16.8-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: medikiosk
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: medikiosk
+      POSTGRES_INITDB_ARGS: "-c shared_buffers=256MB -c max_connections=200 -c maintenance_work_mem=64MB -c effective_cache_size=1GB"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U medikiosk -d medikiosk"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 2G
+        reservations:
+          cpus: '2'
+          memory: 1G
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Redis Cache, Session Store, and Celery Broker
+  redis:
+    image: redis:7.4.2-alpine
+    restart: always
+    command: 
+      - redis-server
+      - "--appendonly"
+      - "yes"
+      - "--maxmemory"
+      - "512mb"
+      - "--maxmemory-policy"
+      - "allkeys-lru"
+      - "--requirepass"
+      - "${REDIS_PASSWORD}"
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 15s
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 1G
+        reservations:
+          cpus: '1'
+          memory: 512M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Nginx Reverse Proxy and Load Balancer
+  nginx:
+    image: nginx:1.27.3-alpine
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.production.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - nginx_cache:/var/cache/nginx
+      - ./nginx/logs:/var/log/nginx
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "5"
+
+  # FastAPI Application (Multiple Replicas)
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://medikiosk:${POSTGRES_PASSWORD}@postgres:5432/medikiosk
+      REDIS_HOST: redis
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      REDIS_DB_SESSION: 0
+      REDIS_DB_LOCKS: 1
+      REDIS_DB_RATELIMIT: 2
+      REDIS_DB_CACHE: 3
+      REDIS_DB_CELERY_BROKER: 4
+      REDIS_DB_CELERY_RESULT: 5
+      ENVIRONMENT: production
+      PYTHONUNBUFFERED: 1
+      LOG_FORMAT: json
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "8000"
+    volumes:
+      - ./uploads/temp_scans:/app/uploads/temp_scans
+      - ./uploads/encrypted_vault:/app/uploads/encrypted_vault
+      - ./logs:/var/log/medikiosk
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:8000/healthz"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    deploy:
+      replicas: 3  # Horizontal scaling - adjust based on load
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1.5G
+        reservations:
+          cpus: '0.5'
+          memory: 1G
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "5"
+        labels: "service=api"
+
+  # Celery Worker for Background Tasks
+  celery_worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    command: ["celery", "-A", "workers.celery_app", "worker", "--loglevel=info", "--concurrency=4", "--max-tasks-per-child=100"]
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://medikiosk:${POSTGRES_PASSWORD}@postgres:5432/medikiosk
+      REDIS_HOST: redis
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      CELERY_BROKER_URL: redis://:${REDIS_PASSWORD}@redis:6379/4
+      CELERY_RESULT_BACKEND: redis://:${REDIS_PASSWORD}@redis:6379/5
+      ENVIRONMENT: production
+      PYTHONUNBUFFERED: 1
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./uploads/temp_scans:/app/uploads/temp_scans
+      - ./uploads/encrypted_vault:/app/uploads/encrypted_vault
+      - ./logs:/var/log/medikiosk
+    healthcheck:
+      test: ["CMD", "celery", "-A", "workers.celery_app", "inspect", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    deploy:
+      replicas: 2  # Adjust based on OCR/ABDM task volume
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '1'
+          memory: 1G
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "5"
+        labels: "service=celery_worker"
+
+  # Celery Beat for Scheduled Tasks
+  celery_beat:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    command: ["celery", "-A", "workers.celery_app", "beat", "--loglevel=info", "--scheduler", "redbeat.RedBeatScheduler"]
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://medikiosk:${POSTGRES_PASSWORD}@postgres:5432/medikiosk
+      REDIS_HOST: redis
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      CELERY_BROKER_URL: redis://:${REDIS_PASSWORD}@redis:6379/4
+      CELERY_RESULT_BACKEND: redis://:${REDIS_PASSWORD}@redis:6379/5
+      ENVIRONMENT: production
+      PYTHONUNBUFFERED: 1
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./logs:/var/log/medikiosk
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep -f 'celery beat' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+        labels: "service=celery_beat"
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  nginx_cache:
+    driver: local
+
+networks:
+  default:
+    name: medikiosk_prod_network
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.enable_ip_masquerade: 'true'
