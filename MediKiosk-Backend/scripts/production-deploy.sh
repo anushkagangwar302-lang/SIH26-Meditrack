@@ -24,9 +24,9 @@ BLUE='\033[0;34m'
 NC='\033[0m'
 
 echo ""
-echo -e "${BLUE}╔════════════════════════════════════════════════════════╗${NC}"
+echo -e "${BLUE}╔══════════════════════════════════════════════════════════╗${NC}"
 echo -e "${BLUE}║      MediKiosk Production Deployment Script            ║${NC}"
-echo -e "${BLUE}╚════════════════════════════════════════════════════════╝${NC}"
+echo -e "${BLUE}╚══════════════════════════════════════════════════════════╝${NC}"
 echo ""
 
 # Check prerequisites
@@ -146,9 +146,9 @@ else
 fi
 echo ""
 
-echo -e "${GREEN}╔════════════════════════════════════════════════════════╗${NC}"
+echo -e "${GREEN}╔══════════════════════════════════════════════════════════╗${NC}"
 echo -e "${GREEN}║     ✓ Production Deployment Successful!                ║${NC}"
-echo -e "${GREEN}╚════════════════════════════════════════════════════════╝${NC}"
+echo -e "${GREEN}╚══════════════════════════════════════════════════════════╝${NC}"
 echo ""
 echo "Next steps:"
 echo "1. Monitor logs: docker compose logs -f api"
