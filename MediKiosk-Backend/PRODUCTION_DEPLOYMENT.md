@@ -294,13 +294,6 @@ docker compose up -d --scale api=5
 - **Bhashini Documentation**: [https://bhashini.gov.in/](https://bhashini.gov.in/)
 - **DPDP Act 2023**: [https://www.meity.gov.in/](https://www.meity.gov.in/)
 
-## Emergency Contacts
-
-- **Technical Support**: [Your contact]
-- **Security Issues**: security@your-org.com
-- **ABDM Support**: support@abdm.gov.in
-- **Bhashini Support**: support@bhashini.gov.in
-
 ---
 
 **Last Updated**: 2026-09-04  
