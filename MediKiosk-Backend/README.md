@@ -1,4 +1,4 @@
-# MediKiosk-Backend — Phase 1 foundations only.
+# MediKiosk-Backend — Phases 0–2 (foundations + data layer).
 # Full setup, scaling, and go-live checklist land in Phase 9.
 
 This repository folder is the FastAPI backend for SIH26 MediTrack.
@@ -15,4 +15,13 @@ curl -s http://127.0.0.1:8000/healthz
 curl -s http://127.0.0.1:8000/readyz
 ```
 
-Alembic, auth, AI, routes, workers, and tests are later phases. Do not call `create_all()`.
+## Phase 2 — migrations
+
+Never call `create_all()`. Apply schema with Alembic (uses `DATABASE_URL` from `.env`, swapped to psycopg2):
+
+```bash
+cd MediKiosk-Backend
+alembic upgrade head
+```
+
+Auth, AI, routes, workers, and tests are later phases.

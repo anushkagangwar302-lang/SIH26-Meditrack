@@ -31,6 +31,8 @@ RUN groupadd --gid 10001 medikiosk \
 COPY --from=builder /opt/venv /opt/venv
 WORKDIR /app
 COPY --chown=medikiosk:medikiosk app ./app
+COPY --chown=medikiosk:medikiosk alembic.ini ./
+COPY --chown=medikiosk:medikiosk alembic ./alembic
 COPY --chown=medikiosk:medikiosk uploads ./uploads
 
 USER medikiosk
