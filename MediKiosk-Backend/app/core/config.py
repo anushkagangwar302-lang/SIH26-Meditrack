@@ -108,6 +108,15 @@ class Settings(BaseSettings):
     def is_production(self) -> bool:
         return self.APP_ENV == "production"
 
+    @property
+    def database_url_sync(self) -> str:
+        """psycopg2 URL for Alembic. Never log this — it embeds the DB password."""
+        return self.DATABASE_URL.get_secret_value().replace(
+            "postgresql+asyncpg://",
+            "postgresql+psycopg2://",
+            1,
+        )
+
     def redis_url(self, db: int) -> str:
         password = self.REDIS_PASSWORD.get_secret_value() if self.REDIS_PASSWORD else None
         auth = f":{password}@" if password else ""

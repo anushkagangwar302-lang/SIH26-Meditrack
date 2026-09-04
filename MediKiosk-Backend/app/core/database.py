@@ -21,17 +21,18 @@ from __future__ import annotations
 import uuid
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from datetime import datetime
 from typing import Any
 
 from redis.asyncio import Redis
-from sqlalchemy import text
+from sqlalchemy import DateTime, func, text
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
     async_sessionmaker,
     create_async_engine,
 )
-from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 from app.core.config import Settings, get_settings
 from app.core.exceptions import ConflictError, ServiceUnavailableError
@@ -48,6 +49,20 @@ end
 
 class Base(DeclarativeBase):
     """Declarative base. Tables are created only via Alembic (no create_all)."""
+
+
+class TimestampMixin:
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
+    )
 
 
 # Engine/sessionmaker are constructed in init_engine() during lifespan.
