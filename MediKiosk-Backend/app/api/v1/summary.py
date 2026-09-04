@@ -163,9 +163,9 @@ async def get_session_summary(
 
     # Convert string format to enum
     try:
-        format_enum = SummaryFormatEnum(format)
+        format_enum = SummaryFormat(format)
     except ValueError:
-        format_enum = SummaryFormatEnum.structured
+        format_enum = SummaryFormat.structured
 
     request = SummaryRequest(
         session_id=session_id,
