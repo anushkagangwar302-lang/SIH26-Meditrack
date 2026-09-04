@@ -9,6 +9,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, ORJSONResponse
 
 from app.api.v1.auth_routes import router as auth_router
+from app.api.v1.abdm_webhooks import router as abdm_webhooks_router
+from app.api.v1.documents import router as documents_router
+from app.api.v1.interview import router as interview_router
+from app.api.v1.summary import router as summary_router
 from app.core.config import get_settings
 from app.core.database import (
     close_connections,
@@ -97,6 +101,10 @@ def create_app() -> FastAPI:
         return {"status": "ready", "request_id": get_request_id()}
 
     app.include_router(auth_router, prefix=settings.API_V1_PREFIX)
+    app.include_router(interview_router, prefix=settings.API_V1_PREFIX)
+    app.include_router(documents_router, prefix=settings.API_V1_PREFIX)
+    app.include_router(summary_router, prefix=settings.API_V1_PREFIX)
+    app.include_router(abdm_webhooks_router, prefix=settings.API_V1_PREFIX)
     return app
 
 
