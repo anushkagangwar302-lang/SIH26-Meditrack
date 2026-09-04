@@ -1,0 +1,1 @@
+"""MediKiosk-Backend application package."""

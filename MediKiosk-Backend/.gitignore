@@ -1,0 +1,41 @@
+# Secrets and local env (never commit real keys — DPDP)
+.env
+.env.local
+*.pem
+*.key
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+env/
+*.egg-info/
+.eggs/
+dist/
+build/
+
+# Alembic / tooling
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Uploads: temp scans must never be committed; vault is opt-in ciphertext only
+uploads/temp_scans/*
+!uploads/temp_scans/.gitkeep
+uploads/encrypted_vault/*
+!uploads/encrypted_vault/.gitkeep
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+
+# Logs
+*.log
+logs/

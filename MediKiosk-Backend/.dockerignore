@@ -1,0 +1,12 @@
+.git
+.venv
+venv
+__pycache__
+*.pyc
+.env
+uploads/temp_scans/**
+uploads/encrypted_vault/**
+!uploads/temp_scans/.gitkeep
+!uploads/encrypted_vault/.gitkeep
+tests
+*.md
