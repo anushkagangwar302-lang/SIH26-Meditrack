@@ -4,18 +4,18 @@
     {
       "src": "frontend/dev-server/package.json",
       "use": "@vercel/static-build",
-      "config": { "distDir": "dist" }
+      "config": {
+        "distDir": "dist"
+      }
     }
   ],
-  "env": {
-    "NITRO_PRESET": "vercel",
-    "VITE_API_BASE_URL": {
-      "description": "Base URL of the MediKiosk-Backend API. Leave empty for same-origin /api/v1, or set to your deployed backend URL (e.g., https://api.yourdomain.com)",
-      "value": ""
-    }
-  },
   "routes": [
-    { "handle": "filesystem" },
-    { "src": "/(.*)", "dest": "/index.html" }
+    {
+      "handle": "filesystem"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
   ]
 }
