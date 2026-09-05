@@ -324,12 +324,12 @@ class TestWebhookSignature:
     """Test webhook signature verification."""
 
     @pytest.fixture
-    def sample_webhook_secret():
+    def sample_webhook_secret(self):
         """Sample webhook secret for testing."""
         return "test-webhook-secret"
 
     @pytest.fixture
-    def sample_webhook_payload():
+    def sample_webhook_payload(self):
         """Sample webhook payload."""
         return {
             "requestId": str(uuid.uuid4()),

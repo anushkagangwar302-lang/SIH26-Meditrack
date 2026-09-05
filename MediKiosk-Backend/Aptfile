@@ -1,0 +1,7 @@
+# Buildpack-based platforms (Heroku apt buildpack, Railway nixpacks aptPkgs)
+# need these for OCR and MIME sniffing. Container deploys get them from the Dockerfile.
+tesseract-ocr
+tesseract-ocr-eng
+tesseract-ocr-hin
+tesseract-ocr-ben
+libmagic1

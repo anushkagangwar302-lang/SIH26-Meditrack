@@ -1,0 +1,35 @@
+{
+  "name": "MediKiosk-Backend",
+  "description": "FastAPI healthcare intake backend for SIH26 MediTrack (ABDM, Bhashini, AYUSH, DPDP Act 2023).",
+  "repository": "https://github.com/rahull-techh/SIH26-Meditrack",
+  "keywords": ["fastapi", "healthcare", "abdm", "celery"],
+  "stack": "container",
+  "formation": {
+    "web": { "quantity": 1, "size": "standard-1x" },
+    "worker": { "quantity": 1, "size": "standard-1x" },
+    "beat": { "quantity": 1, "size": "standard-1x" }
+  },
+  "addons": ["heroku-postgresql:essential-0", "heroku-redis:mini"],
+  "env": {
+    "APP_ENV": { "value": "production" },
+    "DEBUG": { "value": "false" },
+    "DATABASE_URL": {
+      "description": "asyncpg URL. Heroku Postgres exposes postgres://; rewrite to postgresql+asyncpg://.",
+      "required": true
+    },
+    "JWT_SECRET_KEY": { "description": "Access token signing key.", "generator": "secret" },
+    "JWT_REFRESH_SECRET_KEY": { "description": "Refresh token signing key.", "generator": "secret" },
+    "FIELD_ENCRYPTION_KEY": {
+      "description": "32-byte urlsafe-base64 key for Aadhaar/ABHA field encryption.",
+      "required": true
+    },
+    "PII_LOOKUP_HMAC_KEY": {
+      "description": "32-byte urlsafe-base64 HMAC key for blind PII lookups.",
+      "required": true
+    },
+    "CORS_ORIGINS": {
+      "description": "Comma-separated frontend origins.",
+      "value": "https://your-frontend.vercel.app"
+    }
+  }
+}

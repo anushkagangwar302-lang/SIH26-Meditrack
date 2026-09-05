@@ -1,0 +1,126 @@
+# Render Blueprint — full MediTrack stack (frontend + API + workers + datastores).
+# Deploy with: Render Dashboard → New → Blueprint → point at this repo.
+# Secrets marked sync:false must be filled in the Render dashboard before first deploy.
+
+databases:
+  - name: medikiosk-db
+    databaseName: medikiosk
+    user: medikiosk
+    postgresMajorVersion: "16"
+    plan: basic-256mb
+
+services:
+  - type: redis
+    name: medikiosk-redis
+    plan: starter
+    maxmemoryPolicy: noeviction
+    ipAllowList: []
+
+  - type: web
+    name: medikiosk-backend
+    runtime: docker
+    plan: starter
+    region: singapore
+    dockerfilePath: ./MediKiosk-Backend/Dockerfile
+    dockerContext: ./MediKiosk-Backend
+    healthCheckPath: /healthz
+    preDeployCommand: alembic upgrade head
+    disk:
+      name: medikiosk-uploads
+      mountPath: /app/uploads
+      sizeGB: 10
+    envVars: &backendEnv
+      - key: APP_ENV
+        value: production
+      - key: DEBUG
+        value: "false"
+      - key: LOG_LEVEL
+        value: INFO
+      - key: PORT
+        value: "8000"
+      # Render exposes postgresql://; SQLAlchemy needs the asyncpg driver, so set
+      # DATABASE_URL manually as postgresql+asyncpg://... using these parts.
+      - key: RENDER_DATABASE_URL
+        fromDatabase:
+          name: medikiosk-db
+          property: connectionString
+      - key: DATABASE_URL
+        sync: false
+      - key: REDIS_HOST
+        fromService:
+          type: redis
+          name: medikiosk-redis
+          property: host
+      - key: REDIS_PORT
+        fromService:
+          type: redis
+          name: medikiosk-redis
+          property: port
+      - key: CELERY_BROKER_URL
+        fromService:
+          type: redis
+          name: medikiosk-redis
+          property: connectionString
+      - key: CELERY_RESULT_BACKEND
+        fromService:
+          type: redis
+          name: medikiosk-redis
+          property: connectionString
+      - key: JWT_SECRET_KEY
+        generateValue: true
+      - key: JWT_REFRESH_SECRET_KEY
+        generateValue: true
+      # 32-byte urlsafe-base64 values — generate with scripts/generate-production-secrets.sh
+      - key: FIELD_ENCRYPTION_KEY
+        sync: false
+      - key: PII_LOOKUP_HMAC_KEY
+        sync: false
+      - key: CORS_ORIGINS
+        sync: false
+      - key: ABDM_CLIENT_ID
+        sync: false
+      - key: ABDM_CLIENT_SECRET
+        sync: false
+      - key: ABDM_WEBHOOK_SECRET
+        sync: false
+      - key: BHASHINI_API_KEY
+        sync: false
+
+  - type: worker
+    name: medikiosk-celery-worker
+    runtime: docker
+    plan: starter
+    region: singapore
+    dockerfilePath: ./MediKiosk-Backend/Dockerfile
+    dockerContext: ./MediKiosk-Backend
+    dockerCommand: celery -A workers.celery_app worker --loglevel=info --concurrency=4
+    envVars: *backendEnv
+
+  - type: worker
+    name: medikiosk-celery-beat
+    runtime: docker
+    plan: starter
+    region: singapore
+    dockerfilePath: ./MediKiosk-Backend/Dockerfile
+    dockerContext: ./MediKiosk-Backend
+    dockerCommand: celery -A workers.celery_app beat --loglevel=info
+    envVars: *backendEnv
+
+  - type: web
+    name: medikiosk-frontend
+    runtime: node
+    plan: starter
+    region: singapore
+    rootDir: frontend/dev-server
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: NITRO_PRESET
+        value: node
+      - key: VITE_API_BASE_URL
+        fromService:
+          type: web
+          name: medikiosk-backend
+          property: host

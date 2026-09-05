@@ -75,7 +75,9 @@ function Intake() {
           >
             <span
               className={
-                listening ? "block size-5 rounded-sm bg-brand-foreground" : "block size-5 rounded-full bg-brand-foreground"
+                listening
+                  ? "block size-5 rounded-sm bg-brand-foreground"
+                  : "block size-5 rounded-full bg-brand-foreground"
               }
             />
           </button>
@@ -89,9 +91,7 @@ function Intake() {
               onClick={() => answer(opt)}
               className={
                 "rounded-full px-3.5 py-2 text-[12px] font-bold text-ink ring-1 " +
-                (picked === opt
-                  ? "bg-mint/30 ring-mint/50"
-                  : "bg-white/80 ring-white/80")
+                (picked === opt ? "bg-mint/30 ring-mint/50" : "bg-white/80 ring-white/80")
               }
             >
               {opt}

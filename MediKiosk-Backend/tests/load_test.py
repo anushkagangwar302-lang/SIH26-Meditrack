@@ -244,7 +244,7 @@ def on_locust_init(environment, **kwargs):
 
 
 @events.test_stop.add_listener
-def on_test_stop(environment, **kwargs, **_):
+def on_test_stop(environment, **kwargs):
     """Print summary when test stops."""
     if environment.stats.total.fail_ratio > 0.1:
         print(f"WARNING: High failure ratio: {environment.stats.total.fail_ratio:.2%}")

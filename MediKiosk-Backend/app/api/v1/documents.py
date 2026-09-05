@@ -37,15 +37,15 @@ router = APIRouter(prefix="/documents", tags=["documents"])
 
 @router.post("/upload", response_model=DocumentOut)
 async def upload_document(
-    patient_id: uuid.UUID = Form(...),
-    session_id: uuid.UUID | None = Form(None),
-    kind: DocumentKind = Form(...),
-    idempotency_key: str = Form(...),
-    vault_opt_in: bool = Form(False),
-    file: UploadFile = File(...),
-    idempotency_header: Annotated[str | None, Header(alias="Idempotency-Key")] = None,
     principal: Annotated[Principal, Depends(require_intake_session)],
     session: Annotated[AsyncSession, Depends(get_db)],
+    patient_id: uuid.UUID = Form(...),
+    kind: DocumentKind = Form(...),
+    idempotency_key: str = Form(...),
+    file: UploadFile = File(...),
+    session_id: uuid.UUID | None = Form(None),
+    vault_opt_in: bool = Form(False),
+    idempotency_header: Annotated[str | None, Header(alias="Idempotency-Key")] = None,
 ) -> DocumentOut:
     """Upload a document for OCR processing.
 

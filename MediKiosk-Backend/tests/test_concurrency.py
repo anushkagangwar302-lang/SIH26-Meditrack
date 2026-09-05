@@ -537,7 +537,7 @@ class TestMemorySafety:
         session_ids = []
         for i, service in enumerate(services):
             state = await service.start_session(
-                patient_id=uuid.UUID(int=i * 1000)),
+                patient_id=uuid.UUID(int=i * 1000),
                 clinic_id=uuid.uuid4(),
                 language="hi",
             )
