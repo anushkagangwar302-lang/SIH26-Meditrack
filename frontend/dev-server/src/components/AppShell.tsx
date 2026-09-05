@@ -16,9 +16,18 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden bg-app font-body text-ink">
-      <div aria-hidden className="pointer-events-none absolute -top-10 -left-12 size-52 rounded-full bg-rose/30" />
-      <div aria-hidden className="pointer-events-none absolute top-40 -right-16 size-60 rounded-full bg-mint/30" />
-      <div aria-hidden className="pointer-events-none absolute bottom-10 left-6 size-40 rounded-full bg-peach/30" />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -top-10 -left-12 size-52 rounded-full bg-rose/30"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute top-40 -right-16 size-60 rounded-full bg-mint/30"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute bottom-10 left-6 size-40 rounded-full bg-peach/30"
+      />
 
       <header className="relative z-10 flex items-center justify-between px-5 pt-5">
         <div className="flex items-center gap-2.5">

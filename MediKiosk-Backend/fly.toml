@@ -1,0 +1,67 @@
+# Fly.io deployment for MediKiosk-Backend.
+# Provision managed Postgres/Redis first, then set secrets:
+#   fly secrets set DATABASE_URL=... JWT_SECRET_KEY=... JWT_REFRESH_SECRET_KEY=... \
+#                   FIELD_ENCRYPTION_KEY=... PII_LOOKUP_HMAC_KEY=... REDIS_PASSWORD=...
+
+app = "medikiosk-backend"
+primary_region = "bom"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[deploy]
+  release_command = "alembic upgrade head"
+
+[env]
+  APP_ENV = "production"
+  DEBUG = "false"
+  LOG_LEVEL = "INFO"
+  PORT = "8000"
+  UPLOAD_TEMP_DIR = "/app/uploads/temp_scans"
+  UPLOAD_VAULT_DIR = "/app/uploads/encrypted_vault"
+
+[http_service]
+  internal_port = 8000
+  force_https = true
+  auto_stop_machines = "suspend"
+  auto_start_machines = true
+  min_machines_running = 1
+  processes = ["app"]
+
+  [http_service.concurrency]
+    type = "requests"
+    soft_limit = 200
+    hard_limit = 250
+
+[[http_service.checks]]
+  grace_period = "20s"
+  interval = "30s"
+  method = "GET"
+  timeout = "5s"
+  path = "/healthz"
+
+[processes]
+  app = "uvicorn app.main:app --host 0.0.0.0 --port 8000 --log-level info"
+  worker = "celery -A workers.celery_app worker --loglevel=info --concurrency=4"
+  beat = "celery -A workers.celery_app beat --loglevel=info"
+
+# Encrypted document vault must survive machine restarts.
+[[mounts]]
+  source = "medikiosk_uploads"
+  destination = "/app/uploads"
+  processes = ["app", "worker"]
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "1gb"
+  processes = ["app"]
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "2gb"
+  processes = ["worker"]
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"
+  processes = ["beat"]

@@ -1,0 +1,15 @@
+node_modules
+.output
+.nitro
+.netlify
+.vercel
+.wrangler
+.tanstack
+dist
+dist-ssr
+.git
+.gitignore
+*.log
+.env
+.env.*
+.DS_Store

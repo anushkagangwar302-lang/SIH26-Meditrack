@@ -116,7 +116,8 @@ function Documents() {
                   </p>
                   <p
                     className={
-                      "text-[13px] font-bold " + ("warn" in f && f.warn ? "text-rose" : "text-brand")
+                      "text-[13px] font-bold " +
+                      ("warn" in f && f.warn ? "text-rose" : "text-brand")
                     }
                   >
                     {f.v}

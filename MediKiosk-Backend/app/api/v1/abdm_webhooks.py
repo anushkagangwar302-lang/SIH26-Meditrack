@@ -35,8 +35,8 @@ async def receive_abdm_webhook(
     request: Request,
     x_hmac_sha256: Annotated[str, Header(alias="X-HMAC-SHA256")],
     x_timestamp: Annotated[str, Header(alias="X-TIMESTAMP")],
-    x_request_id: Annotated[str | None, Header(alias="X-Request-ID")] = None,
     session: Annotated[AsyncSession, Depends(get_db)],
+    x_request_id: Annotated[str | None, Header(alias="X-Request-ID")] = None,
 ) -> AbdmWebhookAck:
     """Receive and process ABDM HIE-CM webhook.
 
