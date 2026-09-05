@@ -1,0 +1,4 @@
+release: alembic upgrade head
+web: uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000} --log-level info
+worker: celery -A workers.celery_app worker --loglevel=info --concurrency=${CELERY_CONCURRENCY:-4}
+beat: celery -A workers.celery_app beat --loglevel=info

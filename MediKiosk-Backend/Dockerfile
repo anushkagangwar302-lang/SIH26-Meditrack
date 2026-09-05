@@ -78,6 +78,7 @@ WORKDIR /app
 COPY --chown=medikiosk:medikiosk app ./app
 COPY --chown=medikiosk:medikiosk alembic.ini ./
 COPY --chown=medikiosk:medikiosk alembic ./alembic
+COPY --chown=medikiosk:medikiosk workers ./workers
 COPY --chown=medikiosk:medikiosk uploads ./uploads
 
 # Ensure proper permissions for application directories

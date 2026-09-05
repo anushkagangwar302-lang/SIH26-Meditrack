@@ -1,0 +1,17 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "installCommand": "npm ci",
+  "buildCommand": "npm run build",
+  "build": {
+    "env": {
+      "NITRO_PRESET": "vercel"
+    }
+  },
+  "env": {
+    "VITE_API_BASE_URL": {
+      "description": "Base URL of the MediKiosk-Backend API. Leave empty for same-origin /api/v1, or set to your deployed backend URL (e.g., https://api.yourdomain.com)",
+      "value": ""
+    }
+  }
+}

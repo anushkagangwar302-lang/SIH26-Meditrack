@@ -30,3 +30,18 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+# Local env files (per-app .gitignore files cover the rest)
+.env
+.env.local
+.env.*.local
+
+# Platform build/deploy artifacts
+.vercel/
+.netlify/
+.wrangler/
+.output/
+.nitro/
+
+# OS
+.DS_Store
+Thumbs.db

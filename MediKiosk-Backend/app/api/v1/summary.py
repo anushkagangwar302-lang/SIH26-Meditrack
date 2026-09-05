@@ -32,11 +32,11 @@ router = APIRouter(prefix="/summary", tags=["summary"])
 @router.post("/generate")
 async def generate_summary(
     session_id: uuid.UUID,
+    principal: Annotated[Principal, Depends(require_intake_session)],
+    session: Annotated[AsyncSession, Depends(get_db)],
     format: str = Query("text", description="Output format"),
     include_ayush: bool = Query(True, description="Include AYUSH data"),
     language: str = Query("en", description="Summary language"),
-    principal: Annotated[Principal, Depends(require_intake_session)],
-    session: Annotated[AsyncSession, Depends(get_db)],
 ) -> dict[str, str] | dict[str, object]:
     """Generate a clinical summary for a completed interview session.
 
@@ -79,11 +79,11 @@ async def generate_summary(
         logger.info(
             "summary_generated",
             session_id=str(session_id),
-            format=format.value,
+            format=format_enum.value,
             patient_id=str(principal.patient.id) if principal.patient else None,
         )
 
-        if format == SummaryFormat.text:
+        if format_enum == SummaryFormat.text:
             return {"summary": result}
         else:
             return result
@@ -98,9 +98,9 @@ async def generate_summary(
 @router.get("/patient/{patient_id}")
 async def get_patient_summaries(
     patient_id: uuid.UUID,
-    limit: int = Query(10, ge=1, le=50, description="Maximum number of summaries"),
     principal: Annotated[Principal, Depends(require_intake_session)],
     session: Annotated[AsyncSession, Depends(get_db)],
+    limit: int = Query(10, ge=1, le=50, description="Maximum number of summaries"),
 ) -> list[dict[str, object]]:
     """Get historical clinical summaries for a patient.
 
@@ -151,9 +151,9 @@ async def get_patient_summaries(
 @router.get("/session/{session_id}")
 async def get_session_summary(
     session_id: uuid.UUID,
-    format: str = Query("structured", description="Output format"),
     principal: Annotated[Principal, Depends(require_intake_session)],
     db_session: Annotated[AsyncSession, Depends(get_db)],
+    format: str = Query("structured", description="Output format"),
 ) -> dict[str, str] | dict[str, object]:
     """Get a clinical summary for a specific interview session.
 
@@ -184,10 +184,10 @@ async def get_session_summary(
         logger.info(
             "session_summary_retrieved",
             session_id=str(session_id),
-            format=format.value,
+            format=format_enum.value,
         )
 
-        if format == SummaryFormat.text:
+        if format_enum == SummaryFormat.text:
             return {"summary": result}
         else:
             return result
@@ -279,9 +279,9 @@ async def generate_fhir_summary(
 @router.post("/push-abdm/{session_id}")
 async def push_to_abdm(
     session_id: uuid.UUID,
-    hip_id: str | None = Query(None, description="Health Information Provider ID"),
     principal: Annotated[Principal, Depends(require_intake_session)],
     db_session: Annotated[AsyncSession, Depends(get_db)],
+    hip_id: str | None = Query(None, description="Health Information Provider ID"),
 ) -> dict[str, str | bool]:
     """Generate FHIR bundle and push to ABDM HIE-CM.
 

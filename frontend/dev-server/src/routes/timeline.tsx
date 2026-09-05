@@ -75,9 +75,13 @@ function Timeline() {
               style={{ animationDelay: `${i * 80}ms` }}
             >
               <span
-                className={"absolute -left-[26px] top-1 size-3 rounded-full ring-4 ring-white/70 " + e.dot}
+                className={
+                  "absolute -left-[26px] top-1 size-3 rounded-full ring-4 ring-white/70 " + e.dot
+                }
               />
-              <p className="text-[10px] font-bold tracking-wide text-ink-soft uppercase">{e.date}</p>
+              <p className="text-[10px] font-bold tracking-wide text-ink-soft uppercase">
+                {e.date}
+              </p>
               <p className="font-display text-[14px] font-bold text-ink">{e.title}</p>
               <p className="mt-0.5 text-[12px] font-semibold text-ink-soft">{e.body}</p>
             </div>
